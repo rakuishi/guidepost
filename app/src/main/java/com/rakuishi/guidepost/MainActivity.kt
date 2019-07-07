@@ -2,11 +2,13 @@ package com.rakuishi.guidepost
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
 
 class MainActivity : AppCompatActivity() {
@@ -25,9 +27,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun observe() {
-        OrientationLiveData(this).observe(this, Observer { orientation ->
-            if (orientation == null) return@Observer
-            Toast.makeText(this, "$orientation", Toast.LENGTH_SHORT).show()
+        val locationLiveData = LocationLiveData(this)
+        val orientationLiveData = OrientationLiveData(this)
+        val devicePositionLiveData = MediatorLiveData<Pair<Location?, Double?>>()
+        val devicePositionObserver = Observer<Any?> {
+            devicePositionLiveData.value =
+                Pair(locationLiveData.value, orientationLiveData.value)
+        }
+        devicePositionLiveData.addSource(locationLiveData, devicePositionObserver)
+        devicePositionLiveData.addSource(orientationLiveData, devicePositionObserver)
+        devicePositionLiveData.observe(this, Observer { pair ->
+            if (pair == null) return@Observer
+            val message = "${pair.first?.latitude}, ${pair.first?.longitude}, ${pair.second}"
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         })
     }
 

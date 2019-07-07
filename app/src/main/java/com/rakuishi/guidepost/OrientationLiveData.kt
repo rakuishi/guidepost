@@ -15,7 +15,7 @@ import androidx.lifecycle.LiveData
  */
 class OrientationLiveData(context: Context) : LiveData<Double>(), SensorEventListener {
 
-    private var sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    private val sensorManager: SensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val accelerometerReading = FloatArray(3)
     private val magnetometerReading = FloatArray(3)
     private val rotationMatrix = FloatArray(9)
