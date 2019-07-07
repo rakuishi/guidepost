@@ -1,24 +1,38 @@
 package com.rakuishi.guidepost
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
 import android.os.Bundle
-import android.widget.Toast
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
+import com.google.ar.core.TrackingState
+import com.google.ar.sceneform.FrameTime
+import com.google.ar.sceneform.Scene
+import com.google.ar.sceneform.ux.ArFragment
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
     private val REQUEST_PERMISSION: Int = 1000
+    private lateinit var arFragment: ArFragment
+    private lateinit var textView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
+        arFragment.arSceneView.planeRenderer.isEnabled = true
+        arFragment.arSceneView.scene.addOnUpdateListener(this)
+
+        textView = findViewById(R.id.text_view)
+
+        // Start observing
         if (hasAccessFineLocationPermission()) {
             observe()
         } else {
@@ -26,6 +40,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     private fun observe() {
         val locationLiveData = LocationLiveData(this)
         val orientationLiveData = OrientationLiveData(this)
@@ -38,10 +53,21 @@ class MainActivity : AppCompatActivity() {
         devicePositionLiveData.addSource(orientationLiveData, devicePositionObserver)
         devicePositionLiveData.observe(this, Observer { pair ->
             if (pair == null) return@Observer
-            val message = "${pair.first?.latitude}, ${pair.first?.longitude}, ${pair.second}"
-            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            textView.text = "${pair.first?.latitude}\n${pair.first?.longitude}\n${pair.second}"
         })
     }
+
+    // region AR
+
+    override fun onUpdate(frameTime: FrameTime) {
+        val camera = arFragment.arSceneView.arFrame!!.camera
+        if (camera.trackingState == TrackingState.TRACKING) {
+            // Hide instructions for how to scan for planes
+            arFragment.planeDiscoveryController.hide()
+        }
+    }
+
+    // endregion
 
     // region Permission
 
