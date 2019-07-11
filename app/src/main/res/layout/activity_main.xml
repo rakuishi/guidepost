@@ -6,17 +6,75 @@
     tools:context=".MainActivity">
 
     <fragment
-        android:id="@+id/ux_fragment"
+        android:id="@+id/uxFragment"
         android:name="com.google.ar.sceneform.ux.ArFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <TextView
-        android:id="@+id/text_view"
-        style="@style/TextAppearance.AppCompat.Medium.Inverse"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/transparentBlack"
-        android:padding="24dp" />
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/background_bottom_sheet"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:id="@+id/latLonLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                style="@style/TextAppearance.AppCompat.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/latitude_longitude"
+                android:textColor="@color/textMediumEmphasis" />
+
+            <TextView
+                android:id="@+id/latLonTextView"
+                style="@style/TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textHighEmphasis"
+                tools:text="@string/latitude_longitude" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/latLonLayout"
+            android:layout_marginTop="4dp"
+            android:orientation="vertical"
+            tools:ignore="RtlSymmetry">
+
+            <TextView
+                style="@style/TextAppearance.AppCompat.Caption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/orientation"
+                android:textColor="@color/textMediumEmphasis" />
+
+            <TextView
+                android:id="@+id/orientationTextView"
+                style="@style/TextAppearance.AppCompat.Body2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textHighEmphasis"
+                tools:text="@string/orientation" />
+
+        </LinearLayout>
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/button"
+            style="@style/Widget.AppCompat.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:text="@string/start"
+            tools:ignore="RelativeOverlap" />
+
+    </RelativeLayout>
 
 </RelativeLayout>

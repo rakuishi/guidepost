@@ -3,10 +3,8 @@ package com.rakuishi.guidepost
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -22,15 +20,14 @@ import com.google.ar.sceneform.rendering.MaterialFactory
 import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.ShapeFactory
 import com.google.ar.sceneform.ux.ArFragment
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlin.math.cos
 import kotlin.math.sin
-
 
 class MainActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
     private val REQUEST_PERMISSION: Int = 1000
     private lateinit var arFragment: ArFragment
-    private lateinit var textView: TextView
     private var sphereRenderable: ModelRenderable? = null
     private var isAlreadyRendered: Boolean = false
 
@@ -38,13 +35,12 @@ class MainActivity : AppCompatActivity(), Scene.OnUpdateListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        arFragment = supportFragmentManager.findFragmentById(R.id.ux_fragment) as ArFragment
+        arFragment = supportFragmentManager.findFragmentById(R.id.uxFragment) as ArFragment
         arFragment.arSceneView.planeRenderer.isEnabled = true
         arFragment.arSceneView.scene.addOnUpdateListener(this)
 
-        textView = findViewById(R.id.text_view)
-
-        MaterialFactory.makeOpaqueWithColor(this, com.google.ar.sceneform.rendering.Color(Color.CYAN))
+        val color = resources.getColor(R.color.colorPrimary, null)
+        MaterialFactory.makeOpaqueWithColor(this, com.google.ar.sceneform.rendering.Color(color))
             .thenAccept { material ->
                 sphereRenderable = ShapeFactory.makeSphere(0.025f, Vector3(0.0f, 0.0f, 0.0f), material)
             }
@@ -70,8 +66,10 @@ class MainActivity : AppCompatActivity(), Scene.OnUpdateListener {
         devicePositionLiveData.addSource(orientationLiveData, devicePositionObserver)
         devicePositionLiveData.observe(this, Observer { pair ->
             if (pair == null) return@Observer
+            latLonTextView.text = "${pair.first?.latitude} / ${pair.first?.longitude}"
+            orientationTextView.text = "${pair.second}"
+
             if (isAlreadyRendered) return@Observer
-            textView.text = "${pair.first?.latitude}\n${pair.first?.longitude}\n${pair.second}"
             renderIfPossible(pair.first?.latitude, pair.first?.longitude, pair.second)
         })
     }
@@ -96,7 +94,6 @@ class MainActivity : AppCompatActivity(), Scene.OnUpdateListener {
         anchorNode.renderable = sphereRenderable
         anchorNode.setParent(arFragment.arSceneView.scene)
 
-        textView.text = "Latitude: $latitude\nLongitude: $longitude\nOrientation: $orientation\nDistance: $distance"
         isAlreadyRendered = true
     }
 
