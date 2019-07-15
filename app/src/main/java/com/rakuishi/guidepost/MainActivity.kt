@@ -3,14 +3,11 @@ package com.rakuishi.guidepost
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.location.Location
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.Observer
-import com.google.ar.core.Pose
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.AnchorNode
 import com.google.ar.sceneform.FrameTime
@@ -21,15 +18,13 @@ import com.google.ar.sceneform.rendering.ModelRenderable
 import com.google.ar.sceneform.rendering.ShapeFactory
 import com.google.ar.sceneform.ux.ArFragment
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlin.math.cos
-import kotlin.math.sin
 
 class MainActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
     private val REQUEST_PERMISSION: Int = 1000
     private lateinit var arFragment: ArFragment
     private var sphereRenderable: ModelRenderable? = null
-    private var isAlreadyRendered: Boolean = false
+    private var anchorNode: AnchorNode? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,46 +50,28 @@ class MainActivity : AppCompatActivity(), Scene.OnUpdateListener {
 
     @SuppressLint("SetTextI18n")
     private fun observe() {
-        val locationLiveData = LocationLiveData(this)
-        val orientationLiveData = OrientationLiveData(this)
-        val devicePositionLiveData = MediatorLiveData<Pair<Location?, Double?>>()
-        val devicePositionObserver = Observer<Any?> {
-            devicePositionLiveData.value =
-                Pair(locationLiveData.value, orientationLiveData.value)
-        }
-        devicePositionLiveData.addSource(locationLiveData, devicePositionObserver)
-        devicePositionLiveData.addSource(orientationLiveData, devicePositionObserver)
-        devicePositionLiveData.observe(this, Observer { pair ->
+        DevicePositionLiveData(this).observe(this, Observer { pair ->
             if (pair == null) return@Observer
             latLonTextView.text = "${pair.first?.latitude} / ${pair.first?.longitude}"
             orientationTextView.text = "${pair.second}"
-
-            if (isAlreadyRendered) return@Observer
             renderIfPossible(pair.first?.latitude, pair.first?.longitude, pair.second)
         })
     }
 
     @SuppressLint("SetTextI18n")
     private fun renderIfPossible(latitude: Double?, longitude: Double?, orientation: Double?) {
-        if (isAlreadyRendered || latitude == null || longitude == null || orientation == null || sphereRenderable == null) return
-        val camera = arFragment.arSceneView.arFrame!!.camera
-        if (camera.trackingState != TrackingState.TRACKING) return
+        if (anchorNode != null || latitude == null || longitude == null || orientation == null) return
 
-        val distance = LocationUtils.distance(latitude, longitude, latitude, longitude)
-        val bearing = LocationUtils.bearing(latitude, longitude, latitude, longitude)
-        val rotation = bearing - orientation
-        val radRotation = Math.toRadians(rotation)
-        val zRotated = (-distance * cos(radRotation)).toFloat()
-        val xRotated = (distance * sin(radRotation)).toFloat()
-        val y = camera.displayOrientedPose.ty()
-        val translation = Pose.makeTranslation(xRotated, y, zRotated)
-        val pose = camera.displayOrientedPose.compose(translation).extractTranslation()
-        val anchor = arFragment.arSceneView.session!!.createAnchor(pose)
-        val anchorNode = AnchorNode(anchor)
-        anchorNode.renderable = sphereRenderable
-        anchorNode.setParent(arFragment.arSceneView.scene)
-
-        isAlreadyRendered = true
+        anchorNode =
+            ArUtils.renderAnchorNode(
+                arFragment,
+                sphereRenderable,
+                latitude,
+                longitude,
+                latitude,
+                longitude,
+                orientation
+            )
     }
 
     // region AR
