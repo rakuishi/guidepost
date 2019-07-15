@@ -2,5 +2,6 @@
     <string name="app_name">Guidepost</string>
     <string name="latitude_longitude">Latitude / Longitude</string>
     <string name="orientation">Orientation</string>
-    <string name="start">Start</string>
+    <string name="render">Render(%d)</string>
+    <string name="rendered">Rendered(%d)</string>
 </resources>

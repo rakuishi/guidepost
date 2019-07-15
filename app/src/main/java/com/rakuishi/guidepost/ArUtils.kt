@@ -1,6 +1,8 @@
 package com.rakuishi.guidepost
 
-import com.google.ar.core.Camera
+import android.location.Location
+import android.util.Log
+import android.widget.Toast
 import com.google.ar.core.Pose
 import com.google.ar.core.TrackingState
 import com.google.ar.sceneform.AnchorNode
@@ -13,8 +15,7 @@ object ArUtils {
 
     fun renderAnchorNode(
         arFragment: ArFragment, renderable: ModelRenderable?,
-        latitude1: Double, longitude1: Double,
-        latitude2: Double, longitude2: Double,
+        location1: Location, location2: Location,
         orientation: Double
     ): AnchorNode? {
         val camera = arFragment.arSceneView.arFrame!!.camera
@@ -22,8 +23,10 @@ object ArUtils {
             return null
         }
 
-        val distance = LocationUtils.distance(latitude1, longitude1, latitude2, longitude2)
-        val bearing = LocationUtils.bearing(latitude1, longitude1, latitude2, longitude2)
+        val distance =
+            LocationUtils.distance(location1.latitude, location1.longitude, location2.latitude, location2.longitude)
+        val bearing =
+            LocationUtils.bearing(location1.latitude, location1.longitude, location2.latitude, location2.longitude)
         val rotation = bearing - orientation
         val radRotation = Math.toRadians(rotation)
         val zRotated = (-distance * cos(radRotation)).toFloat()

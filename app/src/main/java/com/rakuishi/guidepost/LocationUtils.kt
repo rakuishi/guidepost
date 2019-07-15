@@ -1,5 +1,6 @@
 package com.rakuishi.guidepost
 
+import android.location.Location
 import kotlin.math.*
 
 object LocationUtils {
@@ -40,5 +41,9 @@ object LocationUtils {
         val averageLat = (radLat1 - radLat2) / 2
         val averageLon = (radLon1 - radLon2) / 2
         return 2 * r * asin(sqrt(sin(averageLat).pow(2) + cos(radLat1) * cos(radLat2) * sin(averageLon).pow(2)))
+    }
+
+    fun distance(location1: Location, location2: Location): Double {
+        return distance(location1.latitude, location1.longitude, location2.latitude, location2.longitude)
     }
 }
